@@ -185,8 +185,8 @@ def getDrinkDC():
   parts = userInput.split()
 
   # Make sure we didn't get too maby inputs
-  if len(parts) > 2:
-    print("You entered %d items when only 2 are expected, try again" % (len(parts)))
+  if len(parts) > 2 or len(parts) < 1:
+    print("You entered %d items when 1 or 2 are expected, try again" % (len(parts)))
     return getDrinkDC()
 
   # Make sure we got a valid strength
