@@ -69,18 +69,27 @@ def readConfig():
   if not os.path.isfile(configPath):
     return False
 
-  config = ConfigParser.RawConfigParser()
-  config.read(configPath)
+  try:
+    config = ConfigParser.RawConfigParser()
+    config.read(configPath)
 
-  gModifiers["str"] = config.getint("modifiers", "str")
-  gModifiers["dxt"] = config.getint("modifiers", "dxt")
-  gModifiers["con"] = config.getint("modifiers", "con")
-  gModifiers["int"] = config.getint("modifiers", "int")
-  gModifiers["wis"] = config.getint("modifiers", "wis")
-  gModifiers["cha"] = config.getint("modifiers", "cha")
-  gModifiers["ext"] = config.getint("modifiers", "ext")
+    gModifiers["str"] = config.getint("modifiers", "str")
+    gModifiers["dxt"] = config.getint("modifiers", "dxt")
+    gModifiers["con"] = config.getint("modifiers", "con")
+    gModifiers["int"] = config.getint("modifiers", "int")
+    gModifiers["wis"] = config.getint("modifiers", "wis")
+    gModifiers["cha"] = config.getint("modifiers", "cha")
+    gModifiers["ext"] = config.getint("modifiers", "ext")
 
-  gSize = config.get("size", "size")
+    gSize = config.get("size", "size")
+    # Ensure size is valid
+    sizes = ["s", "small", "m", "medium", "l", "large"]
+    if gSize not in sizes:
+      return False
+  except:
+    # If anything went wrong reding the config then fail this function
+    # The user will be asked for their character again
+    return False
 
   return True
 
