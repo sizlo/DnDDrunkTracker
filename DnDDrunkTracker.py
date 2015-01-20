@@ -85,10 +85,14 @@ def readConfig():
     # Ensure size is valid
     sizes = ["s", "small", "m", "medium", "l", "large"]
     if gSize not in sizes:
+      print("Config file contains invalid size, re-enter your character")
+      print("")
       return False
   except:
     # If anything went wrong reding the config then fail this function
     # The user will be asked for their character again
+    print("Something went wrong reading the config file, re-enter your character")
+    print("")
     return False
 
   return True
