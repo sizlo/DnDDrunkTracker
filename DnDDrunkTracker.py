@@ -3,6 +3,8 @@
 # ------------------------------------------------------------------------------
 import random
 import os
+import ConfigParser
+import sys
 
 # ==============================================================================
 # Globals
@@ -43,7 +45,65 @@ gFailedSavingThrows = 0
 gMaxFailedSavingThrows = 3
 gSavingThrowDC = 15
 
+gConfigFileName = "DnDDrunkTracker.cfg"
 
+# ==============================================================================
+# getFullConfigPath
+# ------------------------------------------------------------------------------
+def getFullConfigPath():
+  ourDir = os.path.dirname(os.path.realpath(__file__))
+  configPath = ourDir + "/" + gConfigFileName
+  return configPath  
+
+# ==============================================================================
+# readConfig
+# Reads modifiers and size from config file if it exists
+# ------------------------------------------------------------------------------
+def readConfig():
+  global gModifiers
+  global gSize
+
+  configPath = getFullConfigPath()
+  
+  # If we don't have a config file bail
+  if not os.path.isfile(configPath):
+    return False
+
+  config = ConfigParser.RawConfigParser()
+  config.read(configPath)
+
+  gModifiers["str"] = config.getint("modifiers", "str")
+  gModifiers["dxt"] = config.getint("modifiers", "dxt")
+  gModifiers["con"] = config.getint("modifiers", "con")
+  gModifiers["int"] = config.getint("modifiers", "int")
+  gModifiers["wis"] = config.getint("modifiers", "wis")
+  gModifiers["cha"] = config.getint("modifiers", "cha")
+  gModifiers["ext"] = config.getint("modifiers", "ext")
+
+  gSize = config.get("size", "size")
+
+  return True
+
+# ==============================================================================
+# writeConfig
+# Write modifiers and size to a config file
+# ------------------------------------------------------------------------------
+def writeConfig():
+  config = ConfigParser.RawConfigParser()
+  config.add_section("size")
+  config.set("size", "size", gSize)
+  config.add_section("modifiers")
+  config.set("modifiers", "str", gModifiers["str"])
+  config.set("modifiers", "dxt", gModifiers["dxt"])
+  config.set("modifiers", "con", gModifiers["con"])
+  config.set("modifiers", "int", gModifiers["int"])
+  config.set("modifiers", "wis", gModifiers["wis"])
+  config.set("modifiers", "cha", gModifiers["cha"])
+  config.set("modifiers", "ext", gModifiers["ext"])
+
+  configPath = getFullConfigPath()
+  with open(configPath, 'wb') as configfile:
+    config.write(configfile)
 
 # ==============================================================================
 # getInt
@@ -90,7 +150,7 @@ def getSize():
 # printModifiers
 # Print the current stored modifiers for all stats
 # ------------------------------------------------------------------------------
-def printModifiers():
+def printModifiers(includeExtra=False):
   print("Str: %+d, Dxt: %+d, Con: %+d, Int: %+d, Wis: %+d, Cha: %+d" % (
     gModifiers["str"],
     gModifiers["dxt"],
@@ -98,6 +158,8 @@ def printModifiers():
     gModifiers["int"],
     gModifiers["wis"],
     gModifiers["cha"]))
+  if includeExtra:
+    print("Extra: %+d" % (gModifiers["ext"]))
 
 # ==============================================================================
 # getDrinkDC
@@ -236,8 +298,20 @@ def clearTerminal():
 # ------------------------------------------------------------------------------
 if __name__ == "__main__":
   try:
-    getModifiers()
-    getSize()
+    if "--resetConfig" not in sys.argv and readConfig():
+      print("Character read from config file %s" % (getFullConfigPath()))
+      print("Run with --resetConfig argument to change this")
+    else:
+      getModifiers()
+      getSize()
+      writeConfig()
+      print("")
+      print("Character written to config file %s" % (getFullConfigPath()))
+    print("")
+    printModifiers(includeExtra=True)
+    print("Size: %s" % (gSize))
+    print("")
+    raw_input("Press enter to continue")
 
     while gDrunkLevel < gMaxDrunkLevel:
       printStatus()
