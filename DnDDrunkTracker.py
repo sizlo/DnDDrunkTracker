@@ -100,16 +100,38 @@ def printModifiers():
     gModifiers["cha"]))
 
 # ==============================================================================
-# getDrinkStrength
-# Get the strength of drink from the user
+# getDrinkDC
+# Ask for the strength of a drink and any temp modifiers
+# Return the drinks DC
 # ------------------------------------------------------------------------------
-def getDrinkStrength():
+def getDrinkDC():
   drinkStrengths = ["l", "light", "m", "medium", "s", "strong"]
-  drinkStrength = raw_input("Enter strength of drink taken (light, medium, strong) > ")
-  while drinkStrength not in drinkStrengths:
-    print("%s is not a valid strength, try again" % (drinkStrength))
-    drinkStrength = raw_input("Enter strength of drink taken (light, medium, strong) > ")
-  return drinkStrength
+  userInput = raw_input("Enter strength of drink taken (light, medium, strong) followed by any temporary modifiers from magic, potions etc > ")
+  parts = userInput.split()
+
+  # Make sure we didn't get too maby inputs
+  if len(parts) > 2:
+    print("You entered %d items when only 2 are expected, try again" % (len(parts)))
+    return getDrinkDC()
+
+  # Make sure we got a valid strength
+  strength = parts[0]
+  if strength not in drinkStrengths:
+    print("%s is not a drink strength, try again" % (strength))
+    return getDrinkDC()
+  
+  # If we got a modifier make sure its valid
+  modifier = 0
+  if len(parts) > 1:
+    modifierStr = parts[1]
+    try:
+      modifier = int(modifierStr)
+    except ValueError:
+      print("%s is not an integer, try again" % (modifierStr))
+      return getDrinkDC()
+  
+  drinkDC = gDrinkDCs[strength] - modifier
+  return drinkDC
 
 # ==============================================================================
 # rollD20
@@ -154,8 +176,7 @@ def takeDrink():
   global gDrunkLevel
   global gDrinkDCs
 
-  drinkStrength = getDrinkStrength()
-  drinkDC = gDrinkDCs[drinkStrength]
+  drinkDC = getDrinkDC()
 
   roll = rollD20()
   roll += gModifiers["con"]
@@ -187,8 +208,8 @@ def takeDrink():
 def attemptSavingThrow():
   global gFailedSavingThrows
 
-  print("On your turn roll a saving throw with a D20")
-  roll = getInt("Enter your roll (without modifiers) > ")
+  print("On your turn roll a consitution saving throw with a D20")
+  roll = getInt("Enter your roll without your constitution modifier but with any temporary buffs from magic, potions etc > ")
   roll += gModifiers["con"]
   if roll <= gSavingThrowDC:
     gFailedSavingThrows += 1
