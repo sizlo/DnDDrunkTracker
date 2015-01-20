@@ -43,6 +43,8 @@ gDrunkLevel = 0
 gMaxDrunkLevel = 6
 gFailedSavingThrows = 0
 gMaxFailedSavingThrows = 3
+gSucceededSavingThrows = 0
+gMaxSucceededSavingThrows = 3
 gSavingThrowDC = 15
 
 gConfigFileName = "DnDDrunkTracker.cfg"
@@ -282,19 +284,33 @@ def takeDrink():
 # ------------------------------------------------------------------------------
 def attemptSavingThrow():
   global gFailedSavingThrows
+  global gSucceededSavingThrows
 
   print("On your turn roll a consitution saving throw with a D20")
   roll = getInt("Enter your roll without your constitution modifier but with any temporary constitution or drink buffs from magic, potions etc > ")
   roll += gModifiers["con"]
   if roll <= gSavingThrowDC:
     gFailedSavingThrows += 1
+  else:
+    gSucceededSavingThrows += 1
+
+# ==============================================================================
+# soberUp
+# Return to level 5 of drunkeness but keep charisma debuff
+# ------------------------------------------------------------------------------
+def soberUp():
+  global gModifiers
+
+  gModifiers["dxt"] += 1
+  gModifiers["wis"] += 1
 
 # ==============================================================================
 # printStatus
 # Prints the current modifiers and drunk status of the character
 # ------------------------------------------------------------------------------
-def printStatus():
-  clearTerminal()
+def printStatus(clear=True):
+  if clear:
+    clearTerminal()
   print("Current status:")
   printModifiers()
   print("")
@@ -331,7 +347,7 @@ if __name__ == "__main__":
       takeDrink()
 
     lastFailedSavingThrows = gFailedSavingThrows
-    while gFailedSavingThrows < gMaxFailedSavingThrows:
+    while gFailedSavingThrows < gMaxFailedSavingThrows and gSucceededSavingThrows < gMaxSucceededSavingThrows:
       printStatus()
       attemptSavingThrow()
 
@@ -344,6 +360,11 @@ if __name__ == "__main__":
         elif gFailedSavingThrows == 3:
           print("********** You have passed out **********")
         raw_input("Press enter to continue")
+      elif gSucceededSavingThrows >= gMaxSucceededSavingThrows:
+        soberUp()
+        print("You feel yourself sobering up")
+        print("Until you take a long rest this is your status:")
+        printModifiers()
       else:
         print("Nothing happens")
         raw_input("Press enter to continue")
